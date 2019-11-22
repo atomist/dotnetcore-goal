@@ -1,0 +1,35 @@
+dotnet_restore:
+  containers:
+  - name: dotnet restore
+    image: mcr.microsoft.com/dotnet/core/sdk:${parameters.tag:3.0}
+    args:
+      - dotnet
+      - restore
+      - --packages ${parameters.nuget_restore_dir:.nuget}
+  output:
+  - classifier: nuget
+    pattern:
+      directory: .nuget
+  - classifier: project_assets
+    pattern:
+      globPattern: 
+      - obj/project.assets.json
+      - obj/*.csproj.nuget.*
+  retry: true
+
+dotnet:
+  containers:
+  - name: dotnet ${parameters.task:build}
+    image: mcr.microsoft.com/dotnet/core/sdk:${parameters.tag:3.0}
+    args:
+      - dotnet
+      - ${parameters.task:build}
+      - ${parameters.options:--no-restore}
+  input: 
+  - nuget
+  - project_assets
+  output:
+  - classifier: dotnet
+    pattern:
+      directory: bin
+  retry: true
